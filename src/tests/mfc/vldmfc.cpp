@@ -38,6 +38,46 @@ CMFCExampleApp theApp;
 
 /////////////////////////////////////////////////////////////////////////////
 // CMFCExampleApp initialization
+void f(){
+
+    int * p = 0x0;
+    p = new int[10001]; *p = 0xfa;
+    p = (int*)malloc(40000); *p = 0xfb;
+}
+
+class EventMonitorPacket{
+
+    int ar[100];
+};
+int g_i = 0;
+
+void ProcessEventPacket(EventMonitorPacket *pEventMonitorPacket);
+void que(EventMonitorPacket *pEventMonitorPacket){
+    EventMonitorPacket* newMsg = new EventMonitorPacket;
+    ZeroMemory(newMsg, sizeof(EventMonitorPacket));
+    memcpy((void *)newMsg, (void *)pEventMonitorPacket, sizeof(EventMonitorPacket));
+
+    delete pEventMonitorPacket;
+    ProcessEventPacket(newMsg);
+}
+void ProcessEventPacket(EventMonitorPacket *pEventMonitorPacket)
+{
+    EventMonitorPacket *pMsg;
+
+    pMsg = new EventMonitorPacket;
+    memcpy((void *)pMsg, (void *)pEventMonitorPacket, sizeof(EventMonitorPacket));
+    g_i++;
+
+    if ((g_i % 2) == 0){
+
+        return;
+    }
+    else
+    {
+        que(pMsg);
+    }
+
+}
 
 BOOL CMFCExampleApp::InitInstance()
 {
@@ -53,6 +93,12 @@ BOOL CMFCExampleApp::InitInstance()
     {
         // TODO: Place code here to handle when the dialog is
         //  dismissed with OK
+        f();
+        for (int j = 0; j < 7; j++){
+            EventMonitorPacket g;
+            ProcessEventPacket(&g);
+
+        }
         CString *s = new CString("Hello World!\n");
 
         if (!dlg.m_bLeak) {
@@ -64,7 +110,7 @@ BOOL CMFCExampleApp::InitInstance()
         // TODO: Place code here to handle when the dialog is
         //  dismissed with Cancel
     }
-
+    _CrtDumpMemoryLeaks();
     // Since the dialog has been closed, return FALSE so that we exit the
     //  application, rather than start the application's message pump.
     return FALSE;
